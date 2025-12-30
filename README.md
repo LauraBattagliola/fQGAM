@@ -1,6 +1,6 @@
-# fQGAM: Functional Quantile Regression via Generalized Additive Models
+# fQGAM: Scalar-on-Function Quantile Regression for Clustered Data
 
-**fQGAM** implements functional quantile regression for longitudinal functional data using generalized additive models. The package provides:
+**fQGAM** implements functional quantile regression for clustered or longitudinal data with functional covariates using generalized additive models. The package provides:
 
 - Tools for fitting quantile regression models with functional covariates via `qgam`
 - **Block bootstrap** for variance estimation (resamples complete subject trajectories)
