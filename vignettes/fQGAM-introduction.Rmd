@@ -1,0 +1,260 @@
+---
+title: "Introduction to fQGAM: DTI Data Example"
+author: "M.L. Battagliola, H. Sørensen, A. Tolver, A.-M. Staicu"
+date: "`r Sys.Date()`"
+output: rmarkdown::html_vignette
+vignette: >
+  %\VignetteIndexEntry{Introduction to fQGAM: DTI Data Example}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
+---
+
+```{r setup, include = FALSE}
+knitr::opts_chunk$set(
+  collapse = TRUE,
+  comment = "#>",
+  fig.width = 7,
+  fig.height = 5
+)
+```
+
+## Overview
+
+This vignette demonstrates how to implement functional quantile regression (fQGAM) using the DTI dataset available in the R package `refund`. 
+
+Given data $\{(Y_{ij}, X_{ij}(\cdot), t_{ij})\}_{ij}$ where $i=1,\dots, N$ (subjects) and $j=1,\dots, n_i$ (observations for each subject), the model we are interested in is:
+
+$$Q_{Y_{ij}| X_{ij}, u_i}^\tau(t_{ij}) = \alpha^\tau(t_{ij}) + \int_{\mathcal{S}} \beta^\tau(s,t_{ij}) X_{ij}(s)ds + u_i$$
+
+Here, $\tau \in (0,1)$ is a fixed quantile level, and we assume curves $\{X_{ij}(\cdot)\}$ are $L^2(\mathcal{S})$, where we take $\mathcal{S}=[0,1]$.
+
+## Data Preparation
+
+```{r load-packages, message=FALSE}
+library(fQGAM)
+library(refund)
+library(qgam)
+library(ggplot2)
+
+theme_set(theme_bw())
+```
+
+The DTI dataset contains diffusion tensor imaging data. We use `cca` (corpus callosum fractional anisotropy) as functional covariates $\{X_{ij}(\cdot)\}$, `pasat` (cognitive test scores) as response $\{Y_{ij}\}$, and `visit.time` as longitudinal time stamps.
+
+```{r load-data}
+data(DTI)
+myData <- DTI[complete.cases(DTI$cca), ]
+myData <- subset(myData, Nscans > 1)
+
+N <- nrow(myData)
+S <- ncol(myData$cca)
+
+cat("Number of observations:", N, "\n")
+cat("Functional grid size:", S, "\n")
+```
+
+Prepare the data using the helper function:
+
+```{r prep-data}
+myDataFit <- prep_fqgam_data(
+  y = myData$pasat,
+  id = myData$ID,
+  time = myData$visit.time,
+  Xobs = myData$cca
+)
+
+# Number of unique subjects
+Nid <- length(unique(myDataFit$id))
+maxT <- max(myDataFit$time)
+
+cat("Number of subjects:", Nid, "\n")
+cat("Maximum time:", maxT, "\n")
+```
+
+Extract reference curves (20% and 80% pointwise quantiles of `cca`):
+
+```{r reference-curves, fig.height=4}
+cca20 <- apply(myData$cca, 2, quantile, probs = 0.2)
+cca80 <- apply(myData$cca, 2, quantile, probs = 0.8)
+
+# Visualize
+sVec <- seq(0, 1, length = S)
+plot_data <- data.frame(
+  s = rep(sVec, 3),
+  value = c(colMeans(myData$cca), cca20, cca80),
+  curve = factor(rep(c("Mean", "20% quantile", "80% quantile"), each = S))
+)
+
+ggplot(plot_data, aes(x = s, y = value, color = curve)) +
+  geom_line(linewidth = 1) +
+  scale_color_manual(values = c("Mean" = "gray50", "20% quantile" = "blue", 
+                                 "80% quantile" = "red")) +
+  labs(x = "s", y = expression(X[ij](s)), color = "") +
+  theme(legend.position = "bottom")
+```
+
+## Fitting the Model
+
+We fit the model at quantile level $\tau = 0.1$:
+
+```{r fit-model, message=FALSE, cache=TRUE}
+tau <- 0.1
+
+formula <- as.formula('y ~ s(time, bs="cr", k=10) + 
+                      te(sMat, tMat, by=Xobs, bs=c("cr", "cr"), k=c(10,10)) + 
+                      s(id, bs="re")')
+
+fit <- qgam(formula, qu = tau, data = myDataFit)
+```
+
+## Computing Predictions
+
+Compute predicted quantiles at the reference curves:
+
+```{r predictions, cache=TRUE}
+# Number of coefficients not related to random effects
+Nfixed <- length(fit$coefficients) - Nid
+
+# Variance-covariance matrix for fixed effects
+cov_mat <- fit$Vp[1:Nfixed, 1:Nfixed]
+
+# Compute predictions
+pred20 <- pred80 <- predDiff <- sd_par <- rep(NA, maxT)
+
+for (t in 1:maxT) {
+  nd20 <- data.frame(time = rep(t, S), tMat = rep(t, S), 
+                     sMat = sVec, Xobs = cca20 * S)
+  nd80 <- data.frame(time = rep(t, S), tMat = rep(t, S), 
+                     sMat = sVec, Xobs = cca80 * S)
+  
+  pred20[t] <- mean(predict(fit, exclude = 's(id)', newdata = nd20, 
+                            newdata.guaranteed = TRUE))
+  pred80[t] <- mean(predict(fit, exclude = 's(id)', newdata = nd80, 
+                            newdata.guaranteed = TRUE))
+  predDiff[t] <- pred20[t] - pred80[t]
+  
+  # Parametric standard errors
+  pred20_mat <- predict(fit, exclude = 's(id)', type = 'lpmatrix',
+                        newdata = nd20, newdata.guaranteed = TRUE)[, 1:Nfixed]
+  pred80_mat <- predict(fit, exclude = 's(id)', type = 'lpmatrix',
+                        newdata = nd80, newdata.guaranteed = TRUE)[, 1:Nfixed]
+  
+  A <- as.matrix(colMeans(pred20_mat) - colMeans(pred80_mat))
+  sd_par[t] <- sqrt(t(A) %*% cov_mat %*% A)
+}
+```
+
+Visualize the predictions:
+
+```{r plot-predictions, fig.height=4, fig.width=10}
+library(gridExtra)
+
+p1 <- ggplot(data.frame(t = 1:maxT, pred20 = pred20, pred80 = pred80)) +
+  geom_line(aes(x = t, y = pred20, color = "Q20"), linewidth = 1) +
+  geom_line(aes(x = t, y = pred80, color = "Q80"), linewidth = 1) +
+  scale_color_manual(values = c("Q20" = "blue", "Q80" = "red"),
+                     labels = c(expression(hat(Q)[20]^tau), 
+                               expression(hat(Q)[80]^tau))) +
+  labs(x = "t", y = "", color = "") +
+  theme(legend.position = "bottom")
+
+p2 <- ggplot(data.frame(t = 1:maxT, diff = predDiff)) +
+  geom_line(aes(x = t, y = diff), linewidth = 1) +
+  labs(x = "t", y = expression(hat(D)^tau * "(t)"))
+
+grid.arrange(p1, p2, ncol = 2)
+```
+
+## Bootstrap Inference
+
+### Block Bootstrap
+
+Block bootstrap resamples entire subject trajectories with replacement:
+
+```{r block-bootstrap, message=FALSE, eval=FALSE}
+# Note: This takes a while to run. Reduce B for testing.
+B <- 100
+
+bb <- boot_pred_block(
+  d = myDataFit, 
+  B = B, 
+  seed = 1234, 
+  tau = tau, 
+  X20 = cca20, 
+  X80 = cca80, 
+  model = fit
+)
+
+print(bb)
+```
+
+### Wild Bootstrap
+
+Wild bootstrap perturbs residuals while preserving the quantile structure:
+
+```{r wild-bootstrap, message=FALSE, eval=FALSE}
+wb <- boot_pred_wild(
+  d = myDataFit, 
+  B = B, 
+  seed = 4321, 
+  tau = tau, 
+  X20 = cca20, 
+  X80 = cca80, 
+  model = fit
+)
+```
+
+### Confidence Intervals
+
+Compute bias-adjusted estimates and confidence intervals:
+
+```{r confidence-intervals, eval=FALSE}
+# Using wild bootstrap for bias adjustment
+ci_wb <- boot_ci(wb, original_pred = predDiff, alpha = 0.05, method = "normal")
+
+# Combine with block bootstrap SE for final inference
+sd_bb <- apply(bb$predDiff, 2, sd)
+
+# Plot
+plot_data <- data.frame(
+  t = 1:maxT,
+  diff = predDiff,
+  diff_adj = ci_wb$estimate,
+  low_par = predDiff - 1.96 * sd_par,
+  up_par = predDiff + 1.96 * sd_par,
+  low_boot = ci_wb$estimate - 1.96 * sd_bb,
+  up_boot = ci_wb$estimate + 1.96 * sd_bb
+)
+
+ggplot(plot_data, aes(x = t)) +
+  geom_line(aes(y = diff), linewidth = 1) +
+  geom_line(aes(y = diff_adj), color = "orange", linewidth = 1) +
+  geom_ribbon(aes(ymin = low_par, ymax = up_par), alpha = 0.2, 
+              fill = "black", linetype = 2) +
+  geom_ribbon(aes(ymin = low_boot, ymax = up_boot), alpha = 0.2, 
+              fill = "orange", linetype = 2) +
+  labs(x = "t", y = expression(hat(D)^tau * "(t)")) +
+  theme(legend.position = "bottom")
+```
+
+## Time-Homogeneous Model
+
+For completeness, here's how to fit a time-homogeneous model:
+
+$$Q_{Y_{ij}| X_{ij}, u_i}^\tau = \alpha^\tau + \int_{\mathcal{S}} \beta^\tau(s) X_{ij}(s)ds + u_i$$
+
+```{r time-homogeneous, eval=FALSE}
+formula_th <- as.formula('y ~ s(sMat, by=Xobs, bs="cr", k=10) + s(id, bs="re")')
+fit_th <- qgam(formula_th, qu = tau, data = myDataFit)
+```
+
+For more flexibility in the learning rate:
+
+```{r flexible-lr, eval=FALSE}
+formula_th1 <- as.formula('~ s(sMat, by=Xobs, bs="cr", k=10) + s(id, bs="re")')
+fit_th_flex <- qgam(list(formula_th, formula_th1), qu = tau, data = myDataFit)
+```
+
+## References
+
+Battagliola, M.L., Sørensen, H., Tolver, A., & Staicu, A.-M. (2023). Quantile regression for longitudinal functional data with application to feed intake of lactating sows.

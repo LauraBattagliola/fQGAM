@@ -1,0 +1,49 @@
+Package: fQGAM
+Title: Functional Quantile Regression via Generalized Additive Models
+Version: 0.1.0
+Authors@R: c(
+    person("Maria Laura", "Battagliola", 
+           email = "mlbattagliola@gmail.com", 
+           role = c("aut", "cre"),
+           comment = c(ORCID = "0009-0008-0278-233X")),
+    person("Helle", "Sørensen", role = "aut"),
+    person("Anders", "Tolver", role = "aut"),
+    person("Ana-Maria", "Staicu", role = "aut")
+    )
+Description: Implements functional quantile regression for longitudinal 
+    functional data using generalized additive models. The package provides 
+    tools for fitting quantile regression models with functional covariates, 
+    including block bootstrap and wild bootstrap methods for inference and 
+    bias adjustment. The methodology accounts for within-cluster dependence 
+    through subject-specific random intercepts. Block bootstrap resamples 
+    complete subject trajectories to estimate standard errors, while wild 
+    bootstrap combines resampling of random effects with residual perturbation 
+    for bias adjustment. Methods are described in Battagliola et al. (2024) 
+    <doi:10.1007/s13253-024-00601-5> "Quantile regression for longitudinal 
+    functional data with application to feed intake of lactating sows" 
+    (Journal of Agricultural, Biological, and Environmental Statistics) 
+    and Battagliola et al. (2022) <doi:10.1016/j.ecosta.2021.07.003> 
+    "A bias-adjusted estimator in quantile regression for clustered data" 
+    (Econometrics and Statistics).
+License: MIT + file LICENSE
+Encoding: UTF-8
+Roxygen: list(markdown = TRUE)
+RoxygenNote: 7.3.1
+Depends: 
+    R (>= 4.0.0)
+Imports: 
+    qgam,
+    mgcv,
+    stats
+Suggests: 
+    refund,
+    ggplot2,
+    gridExtra,
+    knitr,
+    rmarkdown,
+    testthat (>= 3.0.0)
+VignetteBuilder: knitr
+URL: https://github.com/LauraBattagliola/fQGAM
+BugReports: https://github.com/LauraBattagliola/fQGAM/issues
+LazyData: true
+Config/testthat/edition: 3
