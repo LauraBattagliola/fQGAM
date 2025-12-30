@@ -1,11 +1,5 @@
 # fQGAM: Functional Quantile Regression via Generalized Additive Models
 
-<!-- badges: start -->
-[![R-CMD-check](https://github.com/LauraBattagliola/fQGAM/actions/workflows/R-CMD-check.yaml/badge.svg)](https://github.com/LauraBattagliola/fQGAM/actions/workflows/R-CMD-check.yaml)
-<!-- badges: end -->
-
-## Overview
-
 **fQGAM** implements functional quantile regression for longitudinal functional data using generalized additive models. The package provides:
 
 - Tools for fitting quantile regression models with functional covariates via `qgam`
@@ -13,7 +7,6 @@
 - **Wild bootstrap** for bias adjustment (perturbs residuals and resamples random effects)
 - Helper functions for data preparation, prediction, and inference
 
-## Methodology
 
 The methodology is described in two papers:
 
@@ -21,7 +14,7 @@ The methodology is described in two papers:
 
 > Battagliola, M.L., Sørensen, H., Tolver, A., & Staicu, A.-M. (2022). *A bias-adjusted estimator in quantile regression for clustered data*. Econometrics and Statistics, 23, 165-186. [doi:10.1016/j.ecosta.2021.07.003](https://doi.org/10.1016/j.ecosta.2021.07.003)
 
-## Model
+## Overview
 
 Given longitudinal functional data $\{(Y_{ij}, X_{ij}(\cdot), t_{ij})\}$ for subjects $i = 1, \ldots, N$ with $j = 1, \ldots, n_i$ observations each, the functional quantile regression model is:
 
@@ -33,9 +26,8 @@ where:
 - $\beta^\tau(s,t)$ is the bivariate functional coefficient
 - $u_i$ are subject-specific random effects with $E[u_i] = 0$
 
-## Bootstrap Methods
 
-The package implements two complementary bootstrap schemes:
+For estimation and inference on the coefficients of the model, the recommended approach (from Battagliola et al. 2024) combines two bootstrap schemes:
 
 ### Block Bootstrap (`boot_pred_block`)
 - **Purpose**: Variance estimation and standard error computation
@@ -47,12 +39,9 @@ The package implements two complementary bootstrap schemes:
 - **Method**: Combines resampling of estimated random effects with wild bootstrap of residuals
 - **Key feature**: Generates bootstrap data where the true parameter equals the original estimate, allowing bias measurement
 
-The recommended approach (from Battagliola et al. 2024) combines both:
-```
-CI = (estimate - bias_wild) ± z_{1-α/2} × SE_block
-```
 
-## Installation
+
+## Installation and quick start:
 
 Install the development version from GitHub:
 
@@ -61,7 +50,9 @@ Install the development version from GitHub:
 devtools::install_github("LauraBattagliola/fQGAM")
 ```
 
-## Quick Start
+To run the package, you will need \texttt{R} packages \texttt{qgam} and \texttt{mgcv}.
+
+Example:
 
 ```r
 library(fQGAM)
@@ -111,23 +102,6 @@ ci <- boot_ci(block_boot = bb, wild_boot = wb,
 print(ci)
 ```
 
-## Main Functions
-
-| Function | Description |
-|----------|-------------|
-| `prep_fqgam_data()` | Prepare data for model fitting |
-| `boot_pred_block()` | Block bootstrap (resamples subjects) |
-| `boot_pred_wild()` | Wild bootstrap (for bias adjustment) |
-| `compute_bias_adjustment()` | Compute bias-adjusted estimates |
-| `boot_ci()` | Compute bootstrap confidence intervals |
-| `predict_fqgam()` | Predict quantiles at reference curves |
-| `compute_model_se()` | Compute model-based standard errors |
-
-## Requirements
-
-- R (>= 4.0.0)
-- qgam
-- mgcv
 
 ## Citation
 
