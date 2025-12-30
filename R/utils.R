@@ -269,29 +269,19 @@ compute_bias_adjustment <- function(wild_boot, original_pred) {
 #' in Battagliola et al. (2024).
 #'
 #' @details
-#' ## Recommended Approach
+#' \strong{Recommended Approach:}
+#' The recommended approach combines wild bootstrap for bias adjustment and
+#' block bootstrap for standard error estimation. The approximate (1-alpha) 
+#' confidence interval is: theta - bias +/- z * sd_boot, where bias is estimated 
+#' from wild bootstrap and sd_boot from block bootstrap.
 #' 
-#' The recommended approach combines:
-#' \itemize{
-#'   \item **Wild bootstrap** for bias adjustment
-#'   \item **Block bootstrap** for standard error estimation
-#' }
+#' \strong{Alternative Methods:}
+#' Three methods are available: "normal" (uses normal approximation with 
+#' bootstrap SE), "percentile" (uses quantiles of bootstrap distribution 
+#' directly), and "basic" (uses basic bootstrap intervals with reflected 
+#' percentiles).
 #' 
-#' The approximate \eqn{1 - \alpha} confidence interval is:
-#' \deqn{\hat{\theta} - bias_{boot}(\hat{\theta}) \pm z_{1-\alpha/2} \cdot sd_{boot}(\hat{\theta})}
-#' 
-#' where \eqn{bias_{boot}} is estimated from wild bootstrap and \eqn{sd_{boot}} 
-#' from block bootstrap.
-#' 
-#' ## Alternative Methods
-#' 
-#' \itemize{
-#'   \item \code{"normal"}: Uses normal approximation with bootstrap SE
-#'   \item \code{"percentile"}: Uses quantiles of bootstrap distribution directly
-#'   \item \code{"basic"}: Uses basic bootstrap intervals (reflected percentiles)
-#' }
-#' 
-#' Model-based standard errors from \code{qgam} tend to underestimate the true 
+#' Model-based standard errors from qgam tend to underestimate the true 
 #' sampling variation due to penalization of random effects.
 #'
 #' @param block_boot A block bootstrap result object from \code{\link{boot_pred_block}}.
