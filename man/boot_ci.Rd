@@ -25,7 +25,7 @@ Used for bias adjustment. If \code{NULL}, no bias adjustment is performed.}
 \item{model_se}{Optional. Numeric vector of model-based standard errors.}
 
 \item{alpha}{Numeric. Significance level for confidence intervals.
-Default is 0.05 for 95\\% CIs.}
+Default is 0.05.}
 
 \item{method}{Character. One of \code{"normal"}, \code{"percentile"}, or \code{"basic"}.}
 }

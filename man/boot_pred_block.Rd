@@ -39,10 +39,10 @@ use B = 100 in their application.}
 level used in the fitted model.}
 
 \item{X20}{Numeric vector of length S. Point-wise lower reference curve
-(e.g., 20\\% quantile of functional covariates).}
+(e.g., 0.2 quantile of functional covariates).}
 
 \item{X80}{Numeric vector of length S. Point-wise upper reference curve
-(e.g., 80\\% quantile of functional covariates).}
+(e.g., 0.8 quantile of functional covariates).}
 
 \item{model}{A fitted \code{qgam} model object.}
 
@@ -103,45 +103,10 @@ method is not suitable for bias adjustment. For bias correction, use
 }
 \examples{
 \dontrun{
-library(refund)
-library(qgam)
-
-# Prepare DTI data
-data(DTI)
-myData <- DTI[complete.cases(DTI$cca), ]
-myData <- subset(myData, Nscans > 1)
-
-# Create data.frame for qgam
-N <- nrow(myData)
-S <- ncol(myData$cca)
-sVec <- seq(0, 1, length = S)
-
-myDataFit <- data.frame(
-  y = myData$pasat,
-  id = factor(myData$ID),
-  time = myData$visit.time
-)
-myDataFit$Xobs <- myData$cca
-myDataFit$sMat <- matrix(sVec, N, S, byrow = TRUE)
-myDataFit$tMat <- matrix(myData$visit.time, N, S, byrow = FALSE)
-
-# Fit model at tau = 0.1
-tau <- 0.1
-formula <- y ~ s(time, bs = "cr", k = 10) + 
-              te(sMat, tMat, by = Xobs, bs = c("cr", "cr"), k = c(10, 10)) + 
-              s(id, bs = "re")
-fit <- qgam(formula, qu = tau, data = myDataFit)
-
-# Get reference curves (20\% and 80\% pointwise quantiles)
-cca20 <- apply(myData$cca, 2, quantile, probs = 0.2)
-cca80 <- apply(myData$cca, 2, quantile, probs = 0.8)
-
+# Prepare data and reference curves
 # Run block bootstrap for variance estimation
-bb <- boot_pred_block(myDataFit, B = 100, seed = 1234, tau = tau,
+bb <- boot_pred_block(myDataFit, B = 100, seed = 1234, tau = 0.1,
                       X20 = cca20, X80 = cca80, model = fit)
-
-# Compute bootstrap standard errors
-sd_block <- apply(bb$predDiff, 2, sd)
 }
 
 }
@@ -150,9 +115,6 @@ Battagliola, M.L., Sorensen, H., Tolver, A., & Staicu, A.-M. (2024).
 Quantile regression for longitudinal functional data with application to
 feed intake of lactating sows. Journal of Agricultural, Biological, and
 Environmental Statistics, 30(1), 211-230.
-
-Galvao, A., & Montes-Rojas, G. (2015). On bootstrap inference for quantile
-regression panel data: A Monte Carlo study. Econometrics, 3(3), 654-666.
 }
 \seealso{
 \code{\link{boot_pred_wild}} for wild bootstrap (bias adjustment),

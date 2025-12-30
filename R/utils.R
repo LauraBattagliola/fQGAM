@@ -291,7 +291,7 @@ compute_bias_adjustment <- function(wild_boot, original_pred) {
 #' @param original_pred Numeric vector. Original (non-bootstrap) predictions.
 #' @param model_se Optional. Numeric vector of model-based standard errors.
 #' @param alpha Numeric. Significance level for confidence intervals.
-#'   Default is 0.05 for 95\% CIs.
+#'   Default is 0.05.
 #' @param method Character. One of \code{"normal"}, \code{"percentile"}, or \code{"basic"}.
 #'
 #' @return A list of class \code{"fqgam_ci"} containing:

@@ -20,8 +20,7 @@ used primarily for \strong{bias adjustment} of the estimators.
 
 
 The functional quantile regression model is:
-\deqn{Q_{Y_{ij}|X_{ij}, u_i}^\tau(t_{ij}) = \alpha^\tau(t_{ij}) + 
-      \int_S \beta^\tau(s, t_{ij}) X_{ij}(s) ds + u_i}
+\deqn{Q_{Y_{ij}|X_{ij}, u_i}^\tau(t_{ij}) = \alpha^\tau(t_{ij}) + \int_S \beta^\tau(s, t_{ij}) X_{ij}(s) ds + u_i}
 
 where:
 \itemize{
@@ -64,11 +63,9 @@ Battagliola, M.L., Sorensen, H., Tolver, A., & Staicu, A.-M. (2024).
 Quantile regression for longitudinal functional data with application to
 feed intake of lactating sows. Journal of Agricultural, Biological, and
 Environmental Statistics, 30(1), 211-230.
-\doi{10.1007/s13253-024-00601-5}
 
 Battagliola, M.L., Sorensen, H., Tolver, A., & Staicu, A.-M. (2022).
 A bias-adjusted estimator in quantile regression for clustered data.
 Econometrics and Statistics, 23, 165-186.
-\doi{10.1016/j.ecosta.2021.07.003}
 }
 

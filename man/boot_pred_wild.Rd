@@ -39,10 +39,10 @@ use B = 100 in their application.}
 level used in the fitted model.}
 
 \item{X20}{Numeric vector of length S. Point-wise lower reference curve
-(e.g., 20\\% quantile of functional covariates).}
+(e.g., 0.2 quantile of functional covariates).}
 
 \item{X80}{Numeric vector of length S. Point-wise upper reference curve
-(e.g., 80\\% quantile of functional covariates).}
+(e.g., 0.8 quantile of functional covariates).}
 
 \item{model}{A fitted \code{qgam} model object.}
 
@@ -80,16 +80,7 @@ used for bias adjustment.
 \strong{Purpose:}
 Wild bootstrap is used for bias adjustment of the quantile regression
 estimators. As documented in Battagliola et al. (2022), estimators can be
-severely biased when clusters are small due to the incidental parameter
-problem, nonlinearity of quantiles, and penalization.
-
-\strong{Why Wild Bootstrap for Bias:}
-Block resampling cannot be used for bias adjustment because the target
-parameter is not computable under the bootstrap distribution (the resampled
-data do not have the same underlying parameters). Wild bootstrap generates
-bootstrap data under a distribution where the true parameter equals the
-estimate from observed data, allowing bias to be measured as the deviation
-between bootstrap estimates and the original estimate.
+severely biased when clusters are small.
 
 \strong{Algorithm:}
 For each bootstrap iteration b = 1, ..., B:
@@ -100,64 +91,13 @@ distribution: w = 2(1-tau) with probability (1-tau), and w = -2\emph{tau
 with probability tau. This distribution has tau-quantile equal to 0.
 (4) Create bootstrap responses: Y} = fitted_fixed + u* + w*|residual|.
 (5) Fit the model to (Y*, X, t) and compute predictions.
-
-\strong{Bias Estimation:}
-The bias is estimated as: bias = mean(theta_boot - theta_original).
-The bias-adjusted estimator is: theta_adj = theta - bias = 2*theta - mean(theta_boot).
-
-\strong{Wild Bootstrap Properties:}
-The wild bootstrap with asymmetric weights was proposed by Feng et al. (2011)
-for quantile regression. As noted by Wang et al. (2018), wild bootstrap captures
-asymmetry and heteroscedasticity better than ordinary resampling of residuals.
-
-\strong{Important Notes:}
-Covariates X and time points t are kept fixed (same as in the original data).
-This method may underestimate variance due to shrinkage of predicted
-random effects; use \code{\link{boot_pred_block}} for variance estimation.
-}
-\examples{
-\dontrun{
-library(refund)
-library(qgam)
-
-# (Data preparation as in boot_pred_block example)
-
-# Run wild bootstrap for bias adjustment
-wb <- boot_pred_wild(myDataFit, B = 100, seed = 4321, tau = tau,
-                     X20 = cca20, X80 = cca80, model = fit)
-
-# Compute bias-adjusted estimates
-# Original prediction difference
-predDiff_original <- ... # computed from original fit
-
-# Bias estimation
-diff_adj <- sweep(wb$predDiff, 2, predDiff_original)
-bias <- colMeans(diff_adj)
-
-# Bias-adjusted prediction
-predDiff_adjusted <- predDiff_original - bias
-}
-
 }
 \references{
-Battagliola, M.L., Sorensen, H., Tolver, A., & Staicu, A.-M. (2024).
-Quantile regression for longitudinal functional data with application to
-feed intake of lactating sows. Journal of Agricultural, Biological, and
-Environmental Statistics, 30(1), 211-230.
-
 Battagliola, M.L., Sorensen, H., Tolver, A., & Staicu, A.-M. (2022).
 A bias-adjusted estimator in quantile regression for clustered data.
 Econometrics and Statistics, 23, 165-186.
-
-Feng, X., He, X., & Hu, J. (2011). Wild bootstrap for quantile regression.
-Biometrika, 98(4), 995-999.
-
-Wang, L., Van Keilegom, I., & Maidman, A. (2018). Wild residual bootstrap
-inference for penalized quantile regression with heteroscedastic errors.
-Biometrika, 105(4), 859-872.
 }
 \seealso{
 \code{\link{boot_pred_block}} for block bootstrap (variance estimation),
-\code{\link{boot_ci}} for computing confidence intervals,
-\code{\link{compute_bias_adjustment}} for computing bias-adjusted estimates
+\code{\link{boot_ci}} for computing confidence intervals
 }
