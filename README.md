@@ -18,7 +18,7 @@ The methodology is described in two papers:
 
 Given longitudinal functional data $\{(Y_{ij}, X_{ij}(\cdot), t_{ij})\}$ for subjects $i = 1, \ldots, N$ with $j = 1, \ldots, n_i$ observations each, the functional quantile regression model is:
 
-$$Q_{Y_{ij}| X_{ij}, u_i}^\tau(t_{ij}) = \alpha^\tau(t_{ij}) + \int_{\mathcal{S}} \beta^\tau(s,t_{ij}) X_{ij}(s)ds + u_i$$
+$$Q_{Y_{ij}| X_{ij}, u_i}^\tau(t_{ij}) = \alpha^\tau(t_{ij}) + \int_{\mathcal{S}} \beta^\tau(s,t_{ij}) X_{ij}(s)ds + u_i,$$
 
 where:
 - $\tau \in (0,1)$ is the quantile level
@@ -27,7 +27,7 @@ where:
 - $u_i$ are subject-specific random effects with $E[u_i] = 0$
 
 
-For estimation and inference on the coefficients of the model, the recommended approach (from Battagliola et al. 2024) combines two bootstrap schemes:
+For estimation and inference on the coefficients of the model, the approach from Battagliola et al. 2024 combines two bootstrap schemes:
 
 ### Block Bootstrap (`boot_pred_block`)
 - **Purpose**: Variance estimation and standard error computation
