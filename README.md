@@ -50,7 +50,7 @@ Install the development version from GitHub:
 devtools::install_github("LauraBattagliola/fQGAM")
 ```
 
-To run the package, you will need \texttt{R} packages \texttt{qgam} and \texttt{mgcv}.
+To run the package, you will need `R` packages `qgam` and `mgcv`.
 
 Example:
 
