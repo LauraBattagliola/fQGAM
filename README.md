@@ -132,4 +132,4 @@ If you use this package in your research, please cite both papers:
 
 ## License
 
-MIT © Maria Laura Battagliola, Helle Sørensen, Anders Tolver, Ana-Maria Staicu
+MIT © Maria Laura Battagliola
