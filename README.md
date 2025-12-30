@@ -52,7 +52,7 @@ devtools::install_github("LauraBattagliola/fQGAM")
 
 To run the package, you will need `R` packages `qgam` and `mgcv`.
 
-Example:
+Example on DTI data from package `refund`:
 
 ```r
 library(fQGAM)
