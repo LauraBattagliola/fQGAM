@@ -74,74 +74,46 @@ longitudinal time for X80}
 Performs wild bootstrap inference for functional quantile regression models
 fitted with \code{\link[qgam]{qgam}}. This method combines standard resampling
 of estimated random effects with wild bootstrap of residuals, and is primarily
-used for \strong{bias adjustment}.
+used for bias adjustment.
 }
 \details{
-\subsection{Purpose}{
-
-Wild bootstrap is used for \strong{bias adjustment} of the quantile regression
+\strong{Purpose:}
+Wild bootstrap is used for bias adjustment of the quantile regression
 estimators. As documented in Battagliola et al. (2022), estimators can be
 severely biased when clusters are small due to the incidental parameter
 problem, nonlinearity of quantiles, and penalization.
-}
 
-\subsection{Why Wild Bootstrap for Bias?}{
-
+\strong{Why Wild Bootstrap for Bias:}
 Block resampling cannot be used for bias adjustment because the target
 parameter is not computable under the bootstrap distribution (the resampled
 data do not have the same underlying parameters). Wild bootstrap generates
 bootstrap data under a distribution where the true parameter equals the
-estimate from observed data (\eqn{\hat{\beta}^\tau_{two-step}}), allowing
-bias to be measured as the deviation between bootstrap estimates and the
-original estimate.
-}
+estimate from observed data, allowing bias to be measured as the deviation
+between bootstrap estimates and the original estimate.
 
-\subsection{Algorithm}{
+\strong{Algorithm:}
+For each bootstrap iteration b = 1, ..., B:
+(1) Extract estimated terms and residuals from the fitted model.
+(2) Resample random effects with replacement from the estimated values.
+(3) Generate wild bootstrap weights w independently from a two-point
+distribution: w = 2(1-tau) with probability (1-tau), and w = -2\emph{tau
+with probability tau. This distribution has tau-quantile equal to 0.
+(4) Create bootstrap responses: Y} = fitted_fixed + u* + w*|residual|.
+(5) Fit the model to (Y*, X, t) and compute predictions.
 
-For each bootstrap iteration \eqn{b = 1, \ldots, B}:
-\enumerate{
-\item Extract estimated terms and residuals from the fitted model:
-\itemize{
-\item Residuals: \eqn{\varepsilon_{ij} = Y_{ij} - \hat{\alpha}^\tau(t_{ij}) - \int_S \hat{\beta}^\tau(s,t_{ij}) X_{ij}(s) ds - \hat{u}_i}
-\item Estimated random effects: \eqn{\hat{u}_i} from subject-specific intercepts
-}
-\item Resample random effects \eqn{u_i^{*}} with replacement from \eqn{\{\hat{u}_1, \ldots, \hat{u}_N\}}
-\item Generate wild bootstrap weights \eqn{w_{ij}} independently from:
-\deqn{w = \begin{cases} 2(1-\tau) & \text{with probability } 1-\tau \\ -2\tau & \text{with probability } \tau \end{cases}}
-This distribution has \eqn{\tau}-quantile equal to 0.
-\item Create bootstrap responses:
-\deqn{Y_{ij}^* = \hat{\alpha}^\tau(t_{ij}) + \int_S \hat{\beta}^\tau(s,t_{ij}) X_{ij}(s) ds + u_i^* + w_{ij} |\varepsilon_{ij}|}
-\item Fit the model to \eqn{(Y_{ij}^*, X_{ij}, t_{ij})} and compute predictions
-}
-}
+\strong{Bias Estimation:}
+The bias is estimated as: bias = mean(theta_boot - theta_original).
+The bias-adjusted estimator is: theta_adj = theta - bias = 2*theta - mean(theta_boot).
 
-\subsection{Bias Estimation}{
-
-The bias is estimated as:
-\deqn{bias_{boot}(\hat{\theta}) = \frac{1}{B} \sum_{b=1}^{B} (\check{\theta}_b - \hat{\theta})}
-
-where \eqn{\check{\theta}_b} are bootstrap estimates and \eqn{\hat{\theta}} is
-the original estimate. The bias-adjusted estimator is:
-\deqn{\hat{\theta}_{adj} = \hat{\theta} - bias_{boot}(\hat{\theta}) = 2\hat{\theta} - \bar{\theta}^*}
-}
-
-\subsection{Wild Bootstrap Properties}{
-
+\strong{Wild Bootstrap Properties:}
 The wild bootstrap with asymmetric weights was proposed by Feng et al. (2011)
 for quantile regression. As noted by Wang et al. (2018), wild bootstrap captures
 asymmetry and heteroscedasticity better than ordinary resampling of residuals.
-}
 
-\subsection{Important Notes}{
-
-\itemize{
-\item Covariates \eqn{X_{ij}} and time points \eqn{t_{ij}} are kept fixed
-(same as in the original data)
-\item The coupling between covariates and residuals is maintained
-\item This method may underestimate variance due to shrinkage of predicted
-random effects; use \code{\link{boot_pred_block}} for variance estimation
-}
-}
+\strong{Important Notes:}
+Covariates X and time points t are kept fixed (same as in the original data).
+This method may underestimate variance due to shrinkage of predicted
+random effects; use \code{\link{boot_pred_block}} for variance estimation.
 }
 \examples{
 \dontrun{

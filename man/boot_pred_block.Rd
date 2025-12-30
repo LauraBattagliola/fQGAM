@@ -76,43 +76,30 @@ fitted with \code{\link[qgam]{qgam}}. The bootstrap resamples complete subject
 trajectories with replacement, preserving the longitudinal dependence structure.
 }
 \details{
-\subsection{Purpose}{
-
-Block bootstrap is primarily used for \strong{variance estimation} and construction
+\strong{Purpose:}
+Block bootstrap is primarily used for variance estimation and construction
 of standard errors. As noted in Battagliola et al. (2024), model-based standard
 errors from \code{qgam} may underestimate the true sampling variation due to
 penalization of random effects.
-}
 
-\subsection{Algorithm}{
+\strong{Algorithm:}
+For each bootstrap iteration b = 1, ..., B:
+(1) Create a bootstrap dataset by sampling N subjects with replacement.
+(2) Fit the quantile regression model to the bootstrap data.
+(3) Compute predictions at reference curves X20 and X80 for each time point.
+(4) Store the difference in predictions.
 
-For each bootstrap iteration \eqn{b = 1, \ldots, B}:
-\enumerate{
-\item Create a bootstrap dataset by sampling N subjects with replacement
-\item Fit the quantile regression model to the bootstrap data
-\item Compute predictions at reference curves X20 and X80 for each time point
-\item Store the difference in predictions: \eqn{\hat{D}^{\tau,b}(t) = \hat{Q}_{20}^{\tau,b}(t) - \hat{Q}_{80}^{\tau,b}(t)}
-}
+The bootstrap standard error is: sd_boot = sd(theta_1, ..., theta_B).
 
-The bootstrap standard error is then:
-\deqn{sd_{boot}(\hat{\theta}) = sd(\tilde{\theta}_1, \ldots, \tilde{\theta}_B)}
-}
+\strong{Predictions:}
+For a reference functional covariate X(s) at longitudinal time t,
+the predicted quantile (excluding random effects) represents the
+tau-quantile for a typical subject with u_i = 0.
 
-\subsection{Predictions}{
-
-For a reference functional covariate \eqn{X(s)} at longitudinal time \eqn{t},
-the predicted quantile (excluding random effects) is:
-\deqn{\hat{Q}_{X,0}^\tau(t) = \hat{\alpha}^\tau(t) + \int_S X(s) \hat{\beta}^\tau(s,t) ds}
-
-This represents the \eqn{\tau}-quantile for a "typical" subject with \eqn{u_i = 0}.
-}
-
-\subsection{Important Note on Bias}{
-
+\strong{Important Note on Bias:}
 Block bootstrap estimates are centered around the original estimate, so this
-method is \strong{not suitable for bias adjustment}. For bias correction, use
+method is not suitable for bias adjustment. For bias correction, use
 \code{\link{boot_pred_wild}} instead.
-}
 }
 \examples{
 \dontrun{
